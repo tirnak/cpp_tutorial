@@ -17,14 +17,14 @@
 using namespace cv;
 using namespace std;
 
-Mat src, srcGray, dst, detected_edges;
+Mat src, srcGray, dst, detectedEdges;
 
 int edgeThresh = 1;
 int lowThreshold;
 int const maxLowThreshold = 100;
 int ratio = 3;
 int kernelSize = 3;
-char* windowName = "Edge Map";
+string windowName = "Edge Map";
 
 /**
  * @function CannyThreshold
@@ -33,14 +33,14 @@ char* windowName = "Edge Map";
 void CannyThreshold(int, void*)
 {
 
-	blur( srcGray, detected_edges, Size(3,3) );
+	blur( srcGray, detectedEdges, Size(3,3) );
 	// Canny detector
-	Canny( detected_edges, detected_edges, lowThreshold, lowThreshold * ratio, kernelSize );
+	Canny( detectedEdges, detectedEdges, lowThreshold, lowThreshold * ratio, kernelSize );
 
 	// Using Canny's output as a mask, we display our result
 	dst = Scalar::all(0);
 
-	src.copyTo( dst, detected_edges);
+	src.copyTo( dst, detectedEdges);
 	imshow( windowName, dst );
 }
 
@@ -103,12 +103,18 @@ int main(int argc, char** argv )
     imshow("output", srcGray);
 	waitKey();
 
-	blur(srcGray, detected_edges, Size(3,3) );
-    imshow("output", detected_edges);
+	blur(srcGray, detectedEdges, Size(3,3) );
+    imshow("output", detectedEdges);
 	waitKey();
 
-	Canny( detected_edges, detected_edges, 50, 150);
-	imshow("output", detected_edges);
+	Mat sharpened(newImage.size(), newImage.type()), brgBlurMask(newImage.size(), newImage.type());
+	blur(newImage, brgBlurMask, Size(3,3) );
+	addWeighted(newImage, 1.5, brgBlurMask, -0.5, 0, sharpened);
+    imshow("output", sharpened);
+	waitKey();
+
+	Canny( detectedEdges, detectedEdges, 50, 150);
+	imshow("output", detectedEdges);
 	waitKey();
 
 	src = newImage;
@@ -121,7 +127,7 @@ int main(int argc, char** argv )
 	CannyThreshold(0, 0);
 
 	// Wait until user exit program by pressing a key
-	waitKey(0);
+	waitKey();
 
 	// affine
     // getAffineTransform accepts only Point2f
@@ -142,7 +148,6 @@ int main(int argc, char** argv )
 
     imshow("output", warpDst);
 	waitKey();
-
 
 
     return 0;
