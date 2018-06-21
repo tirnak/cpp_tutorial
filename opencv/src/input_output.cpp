@@ -16,6 +16,8 @@
 
 using namespace cv;
 using namespace std;
+
+
 int main(int argc, char** argv )
 {
 
@@ -45,12 +47,63 @@ int main(int argc, char** argv )
     	(*(redStart   + i))[2] = (*origShifted)[2];
     }
 
-    namedWindow("channel", CV_WINDOW_AUTOSIZE);
+    namedWindow("output", CV_WINDOW_AUTOSIZE);
     for (const auto& img : {blue, green, red, blueCopy})
     {
-        imshow("channel", img);
+        imshow("output", img);
         waitKey();
     }
+
+    Mat hsvMat;
+    cvtColor(newImage, hsvMat, COLOR_BGR2HSV);
+
+    // regular iteration, changing values in HSV colour space
+    for (int i = 0; i < newImage.rows; ++i)
+    {
+    	for (int j = 0; j < newImage.cols; ++j)
+    	{
+    		hsvMat.at<Vec3b>(i,j)[0] =
+    				UCHAR_MAX / newImage.cols * j +
+    				UCHAR_MAX / newImage.rows * i;
+    	}
+    }
+
+    imshow("output", hsvMat);
+	waitKey();
+
+	Mat detect;
+
+	cvtColor(newImage, detect, COLOR_BGR2GRAY);
+    imshow("output", detect);
+	waitKey();
+
+	blur( detect, detect, Size(3,3) );
+    imshow("output", detect);
+	waitKey();
+
+	Canny( detect, detect, 50, 150);
+    imshow("output", detect);
+	waitKey();
+
+	// affine
+    // getAffineTransform accepts only Point2f
+    Point2f srcTri[3];
+    srcTri[0] = Point2f( 0.f, 0.f );
+    srcTri[1] = Point2f( newImage.cols - 1.f, 0.f );
+    srcTri[2] = Point2f( 0.f, newImage.rows - 1.f );
+    Point2f dstTri[3];
+    dstTri[0] = Point2f( 0.f, newImage.rows*0.33f );
+    dstTri[1] = Point2f( newImage.cols*0.85f, newImage.rows*0.25f );
+    dstTri[2] = Point2f( newImage.cols*0.15f, newImage.rows*0.7f );
+
+    Mat warpMat = getAffineTransform( srcTri, dstTri );
+
+    Mat warpDst(newImage.size(), newImage.type(), Scalar(0,0,0));
+
+    warpAffine( newImage, warpDst, warpMat, warpDst.size() );
+
+    imshow("output", warpDst);
+	waitKey();
 
     return 0;
 }
