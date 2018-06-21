@@ -17,6 +17,32 @@
 using namespace cv;
 using namespace std;
 
+Mat src, srcGray, dst, detected_edges;
+
+int edgeThresh = 1;
+int lowThreshold;
+int const maxLowThreshold = 100;
+int ratio = 3;
+int kernelSize = 3;
+char* windowName = "Edge Map";
+
+/**
+ * @function CannyThreshold
+ * @brief Trackbar callback - Canny thresholds input with a ratio 1:3
+ */
+void CannyThreshold(int, void*)
+{
+
+	blur( srcGray, detected_edges, Size(3,3) );
+	// Canny detector
+	Canny( detected_edges, detected_edges, lowThreshold, lowThreshold * ratio, kernelSize );
+
+	// Using Canny's output as a mask, we display our result
+	dst = Scalar::all(0);
+
+	src.copyTo( dst, detected_edges);
+	imshow( windowName, dst );
+}
 
 int main(int argc, char** argv )
 {
@@ -73,17 +99,29 @@ int main(int argc, char** argv )
 
 	Mat detect;
 
-	cvtColor(newImage, detect, COLOR_BGR2GRAY);
-    imshow("output", detect);
+	cvtColor(newImage, srcGray, COLOR_BGR2GRAY);
+    imshow("output", srcGray);
 	waitKey();
 
-	blur( detect, detect, Size(3,3) );
-    imshow("output", detect);
+	blur(srcGray, detected_edges, Size(3,3) );
+    imshow("output", detected_edges);
 	waitKey();
 
-	Canny( detect, detect, 50, 150);
-    imshow("output", detect);
+	Canny( detected_edges, detected_edges, 50, 150);
+	imshow("output", detected_edges);
 	waitKey();
+
+	src = newImage;
+	// Canny with GUI
+	// Create a Trackbar for user to enter threshold on a new window
+	namedWindow( windowName, CV_WINDOW_AUTOSIZE );
+	createTrackbar( "Min Threshold:", windowName, &lowThreshold, maxLowThreshold, CannyThreshold );
+
+	// Show the image
+	CannyThreshold(0, 0);
+
+	// Wait until user exit program by pressing a key
+	waitKey(0);
 
 	// affine
     // getAffineTransform accepts only Point2f
@@ -104,6 +142,8 @@ int main(int argc, char** argv )
 
     imshow("output", warpDst);
 	waitKey();
+
+
 
     return 0;
 }

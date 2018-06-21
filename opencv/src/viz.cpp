@@ -5,9 +5,7 @@
 using namespace cv;
 using namespace std;
 
-/**
-* @function main
-*/
+
 int main(int argc, char** argv )
 {
 
