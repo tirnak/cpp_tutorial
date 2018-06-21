@@ -1,4 +1,4 @@
-// simple.cpp
+// basic.cpp
 #include <vector>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
