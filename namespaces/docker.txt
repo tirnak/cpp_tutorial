@@ -1,0 +1,73 @@
+Workshop docker
+
+namespaces
+cgroups
+
+
+Why Linux?
+1979 - UNIX system call chroot()
+
+# chroot example
+mkdir $HOME/jail
+mkdir $HOME/jail/{bin,lib,lib64}
+cp -v /bin/{bash,ls,ps} $HOME/jail/bin
+cp -v /usr/bin/getent $HOME/jail/bin
+cp -v /usr/bin/whoami $HOME/jail/bin
+list="$(ldd /bin/bash | egrep -o '(/usr)?/lib.*\.[0-9]+')" 
+for i in $list; do install -D "$i" "$HOME/jail${i}"; done
+list="$(ldd /bin/ls | egrep -o '(/usr)?/lib.*\.[0-9]+')" 
+for i in $list; do install -D "$i" "$HOME/jail${i}"; done
+list="$(ldd /bin/ps | egrep -o '(/usr)?/lib.*\.[0-9]+')" 
+for i in $list; do install -D "$i" "$HOME/jail${i}"; done
+list="$(ldd /usr/bin/getent | egrep -o '(/usr)?/lib.*\.[0-9]+')" 
+for i in $list; do install -D "$i" "$HOME/jail${i}"; done
+list="$(ldd /usr/bin/whoami | egrep -o '(/usr)?/lib.*\.[0-9]+')" 
+for i in $list; do install -D "$i" "$HOME/jail${i}"; done
+chroot $HOME/jail/ /bin/bash
+
+
+
+2002 - The Linux Namespaces, 2.4.19 kernel, mount namespace
+
+Namespaces are a feature of the Linux kernel that partitions kernel resources such that one set of processes sees one set of resources while another set of processes sees a different set of resources.
+
+mnt
+pid
+net
+ipc
+UTS
+user
+cgroup
+
+Cgroups is a Linux kernel feature that limits, accounts for, and isolates the resource usage (CPU, memory, disk I/O, network, etc.) of a collection of processes. 
+2006 development started under the name "process containers"
+2007 - renamed to "control groups" 
+2008 - merged into the Linux kernel 2.6.24
+
+sudo mkdir /sys/fs/cgroup/memory/my_group
+sudo bash -c "echo 10k > /sys/fs/cgroup/memory/my_group/memory.limit_in_bytes"
+sudo bash -c "echo 0 > /sys/fs/cgroup/memory/my_group/memory.memsw.limit_in_bytes"
+sudo bash -c "echo  > /sys/fs/cgroup/memory/my_group/tasks"
+
+
+for v in {12..18}; do sudo docker run -it --rm ubuntu:$v.04 cat /etc/os-release && uname -a ; done
+
+docker
+
+images vs containers
+Registry - Hub
+
+docker ps, pull, search, stop, rm, rmi
+
+C++
+sudo docker run -it -v `pwd`:/cpp --rm
+mkdir target && cd target
+cmake /cpp && make && ldd boost.o
+
+Nginx
+sudo docker run -d -v `pwd`/static/8010/:/usr/share/nginx/html -p 8010:80 nginx
+
+
+Future - docker compose, kubernetes, AWS Batch, AWS Beanstalk
+
+isolation reproducability infrastructure as a code
