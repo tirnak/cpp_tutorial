@@ -1,5 +1,7 @@
 Workshop docker
 
+for image in "gcc:4.8" "gcc:6" "nginx" ubuntu:{12..18}.04; do docker pull $image; done
+
 namespaces
 cgroups
 
